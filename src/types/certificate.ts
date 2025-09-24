@@ -21,8 +21,6 @@ export interface CertificateTemplate {
   bodyFont: string;
   bodySize: number;
   bodyColor: string;
-  participantNameSize: number;
-  participantNameColor: string;
   logoUrl?: string;
   logoPosition?: 'left' | 'center' | 'right';
   signatureUrl?: string;
