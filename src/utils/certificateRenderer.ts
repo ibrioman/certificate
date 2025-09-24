@@ -133,10 +133,97 @@ export class CertificateRenderer {
     this.ctx.textAlign = 'center';
 
     const bodyY = template.logoUrl ? 280 : 220;
-    const bodyText = template.bodyText.replace('{name}', participant.name);
+    const bodyText = template.bodyText;
     
-    // Handle multi-line text
-    const lines = this.wrapText(bodyText, this.canvas.width - 100);
+    // Split text by {name} placeholder to handle participant name styling separately
+    const parts = bodyText.split('{name}');
+    
+    if (parts.length === 2) {
+      // Text has {name} placeholder - render with special styling for name
+      const beforeName = parts[0].trim();
+      const afterName = parts[1].trim();
+      
+      let currentY = bodyY;
+      
+      // Render text before name
+      if (beforeName) {
+        const beforeLines = this.wrapText(beforeName, this.canvas.width - 100);
+        beforeLines.forEach((line, index) => {
+          this.ctx.fillText(line, this.canvas.width / 2, currentY + (index * (template.bodySize + 10)));
+        });
+        currentY += beforeLines.length * (template.bodySize + 10);
+      }
+      
+      // Render participant name with special styling
+      this.ctx.font = `bold ${template.participantNameSize}px ${template.bodyFont}`;
+      this.ctx.fillStyle = template.participantNameColor;
+      this.ctx.fillText(participant.name, this.canvas.width / 2, currentY);
+      currentY += template.participantNameSize + 15;
+      
+      // Reset font for remaining text
+      this.ctx.font = `${template.bodySize}px ${template.bodyFont}`;
+      this.ctx.fillStyle = template.bodyColor;
+      
+      // Render text after name
+      if (afterName) {
+        const afterLines = this.wrapText(afterName, this.canvas.width - 100);
+        afterLines.forEach((line, index) => {
+          this.ctx.fillText(line, this.canvas.width / 2, currentY + (index * (template.bodySize + 10)));
+        });
+        currentY += afterLines.length * (template.bodySize + 10);
+      }
+      
+      // Update bodyY for subsequent elements
+      const finalBodyY = currentY;
+      
+      // Draw course name if available
+      if (participant.course) {
+        this.ctx.font = `italic ${template.bodySize - 4}px ${template.bodyFont}`;
+        this.ctx.fillText(
+          `Course: ${participant.course}`, 
+          this.canvas.width / 2, 
+          finalBodyY + 30
+        );
+      }
+
+      // Draw grade if available
+      if (participant.grade) {
+        this.ctx.font = `bold ${template.bodySize - 2}px ${template.bodyFont}`;
+        this.ctx.fillText(
+          `Grade: ${participant.grade}`, 
+          this.canvas.width / 2, 
+          finalBodyY + (participant.course ? 60 : 30)
+        );
+      }
+    } else {
+      // No {name} placeholder - render normally with participant name replacement
+      const fullText = bodyText.replace('{name}', participant.name);
+      const lines = this.wrapText(fullText, this.canvas.width - 100);
+      lines.forEach((line, index) => {
+        this.ctx.fillText(line, this.canvas.width / 2, bodyY + (index * (template.bodySize + 10)));
+      });
+      
+      // Draw course name if available
+      if (participant.course) {
+        this.ctx.font = `italic ${template.bodySize - 4}px ${template.bodyFont}`;
+        this.ctx.fillText(
+          `Course: ${participant.course}`, 
+          this.canvas.width / 2, 
+          bodyY + (lines.length * (template.bodySize + 10)) + 30
+        );
+      }
+
+      // Draw grade if available
+      if (participant.grade) {
+        this.ctx.font = `bold ${template.bodySize - 2}px ${template.bodyFont}`;
+        this.ctx.fillText(
+          `Grade: ${participant.grade}`, 
+          this.canvas.width / 2, 
+          bodyY + (lines.length * (template.bodySize + 10)) + 60
+        );
+      }
+    }
+  }
     lines.forEach((line, index) => {
       this.ctx.fillText(line, this.canvas.width / 2, bodyY + (index * (template.bodySize + 10)));
     });

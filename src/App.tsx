@@ -20,6 +20,8 @@ const defaultTemplate: CertificateTemplate = {
   bodyFont: 'Arial',
   bodySize: 18,
   bodyColor: '#34495E',
+  participantNameSize: 24,
+  participantNameColor: '#2C3E50',
   logoPosition: 'center',
   signaturePosition: 'right'
 };
