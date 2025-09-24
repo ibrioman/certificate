@@ -19,7 +19,9 @@ const defaultTemplate: CertificateTemplate = {
   bodyText: 'This is to certify that {name} has successfully completed the requirements and is hereby awarded this certificate.',
   bodyFont: 'Arial',
   bodySize: 18,
-  bodyColor: '#34495E'
+  bodyColor: '#34495E',
+  logoPosition: 'center',
+  signaturePosition: 'right'
 };
 
 const sampleParticipant: Participant = {

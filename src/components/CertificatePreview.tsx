@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Download, Eye, Settings } from 'lucide-react';
 import { CertificateRenderer } from '../utils/certificateRenderer';
 import { CertificateConfig } from '../types/certificate';
+import { ImageUploader } from './ImageUploader';
 
 interface CertificatePreviewProps {
   config: CertificateConfig;
@@ -194,6 +195,28 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({
                 />
                 <span className="text-sm font-medium text-gray-700">Include QR Code</span>
               </label>
+            </div>
+            
+            {/* Logo Upload */}
+            <div className="md:col-span-2 lg:col-span-3">
+              <ImageUploader
+                type="logo"
+                currentImageUrl={config.template.logoUrl}
+                position={config.template.logoPosition || 'center'}
+                onImageUpload={(imageUrl) => handleTemplateChange('logoUrl', imageUrl)}
+                onPositionChange={(position) => handleTemplateChange('logoPosition', position)}
+              />
+            </div>
+            
+            {/* Signature Upload */}
+            <div className="md:col-span-2 lg:col-span-3">
+              <ImageUploader
+                type="signature"
+                currentImageUrl={config.template.signatureUrl}
+                position={config.template.signaturePosition || 'right'}
+                onImageUpload={(imageUrl) => handleTemplateChange('signatureUrl', imageUrl)}
+                onPositionChange={(position) => handleTemplateChange('signaturePosition', position)}
+              />
             </div>
           </div>
         </div>

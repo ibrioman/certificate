@@ -3,6 +3,7 @@ import { CertificateConfig } from '../types/certificate';
 export class CertificateRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private currentTemplate: any;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -15,6 +16,9 @@ export class CertificateRenderer {
 
   async renderCertificate(config: CertificateConfig): Promise<string> {
     const { template, participant, qrCodeUrl, includeQR } = config;
+    
+    // Store template reference for position methods
+    this.currentTemplate = template;
     
     // Set canvas dimensions
     this.canvas.width = template.width;
@@ -87,7 +91,20 @@ export class CertificateRenderer {
       img.crossOrigin = 'anonymous';
       img.onload = () => {
         const logoSize = 80;
-        const x = (this.canvas.width - logoSize) / 2;
+        const position = this.getLogoPosition();
+        let x: number;
+        
+        switch (position) {
+          case 'left':
+            x = 50;
+            break;
+          case 'right':
+            x = this.canvas.width - logoSize - 50;
+            break;
+          default: // center
+            x = (this.canvas.width - logoSize) / 2;
+        }
+        
         const y = 40;
         this.ctx.drawImage(img, x, y, logoSize, logoSize);
         resolve();
@@ -152,7 +169,20 @@ export class CertificateRenderer {
       img.onload = () => {
         const sigWidth = 150;
         const sigHeight = 60;
-        const x = this.canvas.width - sigWidth - 50;
+        const position = this.getSignaturePosition();
+        let x: number;
+        
+        switch (position) {
+          case 'left':
+            x = 50;
+            break;
+          case 'center':
+            x = (this.canvas.width - sigWidth) / 2;
+            break;
+          default: // right
+            x = this.canvas.width - sigWidth - 50;
+        }
+        
         const y = this.canvas.height - sigHeight - 80;
         this.ctx.drawImage(img, x, y, sigWidth, sigHeight);
         
@@ -229,5 +259,13 @@ export class CertificateRenderer {
     }
     lines.push(currentLine);
     return lines;
+  }
+  
+  private getLogoPosition(): 'left' | 'center' | 'right' {
+    return this.currentTemplate?.logoPosition || 'center';
+  }
+  
+  private getSignaturePosition(): 'left' | 'center' | 'right' {
+    return this.currentTemplate?.signaturePosition || 'right';
   }
 }
