@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Download, Eye, Settings } from 'lucide-react';
 import { CertificateRenderer } from '../utils/certificateRenderer';
 import { CertificateConfig } from '../types/certificate';
-import { ImageUploader } from './ImageUploader';
 
 interface CertificatePreviewProps {
   config: CertificateConfig;
@@ -175,32 +174,6 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Participant Name Size
-              </label>
-              <input
-                type="number"
-                min="16"
-                max="48"
-                value={config.template.participantNameSize}
-                onChange={(e) => handleTemplateChange('participantNameSize', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Participant Name Color
-              </label>
-              <input
-                type="color"
-                value={config.template.participantNameColor}
-                onChange={(e) => handleTemplateChange('participantNameColor', e.target.value)}
-                className="w-full h-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Background Color
               </label>
               <input
@@ -221,28 +194,6 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({
                 />
                 <span className="text-sm font-medium text-gray-700">Include QR Code</span>
               </label>
-            </div>
-            
-            {/* Logo Upload */}
-            <div className="md:col-span-2 lg:col-span-3">
-              <ImageUploader
-                type="logo"
-                currentImageUrl={config.template.logoUrl}
-                position={config.template.logoPosition || 'center'}
-                onImageUpload={(imageUrl) => handleTemplateChange('logoUrl', imageUrl)}
-                onPositionChange={(position) => handleTemplateChange('logoPosition', position)}
-              />
-            </div>
-            
-            {/* Signature Upload */}
-            <div className="md:col-span-2 lg:col-span-3">
-              <ImageUploader
-                type="signature"
-                currentImageUrl={config.template.signatureUrl}
-                position={config.template.signaturePosition || 'right'}
-                onImageUpload={(imageUrl) => handleTemplateChange('signatureUrl', imageUrl)}
-                onPositionChange={(position) => handleTemplateChange('signaturePosition', position)}
-              />
             </div>
           </div>
         </div>
