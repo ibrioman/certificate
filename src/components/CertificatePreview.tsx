@@ -175,6 +175,32 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Participant Name Size
+              </label>
+              <input
+                type="number"
+                min="16"
+                max="48"
+                value={config.template.participantNameSize}
+                onChange={(e) => handleTemplateChange('participantNameSize', parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Participant Name Color
+              </label>
+              <input
+                type="color"
+                value={config.template.participantNameColor}
+                onChange={(e) => handleTemplateChange('participantNameColor', e.target.value)}
+                className="w-full h-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Background Color
               </label>
               <input
