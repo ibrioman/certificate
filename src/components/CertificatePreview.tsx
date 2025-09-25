@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Download, Eye, Settings } from 'lucide-react';
 import { CertificateRenderer } from '../utils/certificateRenderer';
 import { CertificateConfig } from '../types/certificate';
+import { ImageUploader } from './ImageUploader';
+import { PositionSelector, ImagePosition } from './PositionSelector';
 
 interface CertificatePreviewProps {
   config: CertificateConfig;
@@ -194,6 +196,44 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({
                 />
                 <span className="text-sm font-medium text-gray-700">Include QR Code</span>
               </label>
+            </div>
+            
+            <div className="col-span-full">
+              <h5 className="text-sm font-semibold text-gray-800 mb-3 border-t pt-4">Logo Settings</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ImageUploader
+                  label="Logo Image"
+                  accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
+                  maxSize={5 * 1024 * 1024}
+                  currentImage={config.template.logoUrl}
+                  onImageUpload={(imageUrl) => handleTemplateChange('logoUrl', imageUrl)}
+                  onImageRemove={() => handleTemplateChange('logoUrl', undefined)}
+                />
+                <PositionSelector
+                  label="Logo Position"
+                  value={config.template.logoPosition || 'center'}
+                  onChange={(position: ImagePosition) => handleTemplateChange('logoPosition', position)}
+                />
+              </div>
+            </div>
+            
+            <div className="col-span-full">
+              <h5 className="text-sm font-semibold text-gray-800 mb-3 border-t pt-4">Signature Settings</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ImageUploader
+                  label="Signature Image"
+                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                  maxSize={2 * 1024 * 1024}
+                  currentImage={config.template.signatureUrl}
+                  onImageUpload={(imageUrl) => handleTemplateChange('signatureUrl', imageUrl)}
+                  onImageRemove={() => handleTemplateChange('signatureUrl', undefined)}
+                />
+                <PositionSelector
+                  label="Signature Position"
+                  value={config.template.signaturePosition || 'right'}
+                  onChange={(position: ImagePosition) => handleTemplateChange('signaturePosition', position)}
+                />
+              </div>
             </div>
           </div>
         </div>

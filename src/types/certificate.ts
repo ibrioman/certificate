@@ -22,7 +22,9 @@ export interface CertificateTemplate {
   bodySize: number;
   bodyColor: string;
   logoUrl?: string;
+  logoPosition?: 'left' | 'center' | 'right';
   signatureUrl?: string;
+  signaturePosition?: 'left' | 'center' | 'right';
 }
 
 export interface CertificateConfig {
