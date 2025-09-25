@@ -1,5 +1,12 @@
 import { CertificateTemplate } from '../types/certificate';
 
+interface CertificateConfig {
+  template: CertificateTemplate;
+  participant?: { name: string };
+  qrCodeUrl?: string;
+  includeQR?: boolean;
+}
+
 export class CertificateRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -13,10 +20,13 @@ export class CertificateRenderer {
     this.ctx = context;
   }
 
-  async renderCertificate(template: CertificateTemplate, participantName?: string): Promise<void> {
+  async renderCertificate(config: CertificateConfig): Promise<void> {
+    const { template, participant, qrCodeUrl, includeQR } = config;
+    const participantName = participant?.name;
+
     // Set canvas size
-    this.canvas.width = 800;
-    this.canvas.height = 600;
+    this.canvas.width = template.width || 800;
+    this.canvas.height = template.height || 600;
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -26,29 +36,38 @@ export class CertificateRenderer {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Render logo if present
-    if (template.logoImage) {
-      await this.renderImage(template.logoImage, template.logoPosition || 'center', 'top');
+    if (template.logoUrl) {
+      await this.renderImage(template.logoUrl, template.logoPosition || 'center', 'top');
     }
 
     // Render title
     this.renderTitle(template.titleText, template.titleSize, template.titleColor);
 
     // Render body text with participant name styling
-    this.renderBodyText(template.bodyText, template.bodyTextSize, template.bodyTextColor, participantName, template.participantNameSize, template.participantNameColor);
+    this.renderBodyText(
+      template.bodyText, 
+      template.bodyTextSize, 
+      template.bodyTextColor, 
+      participantName, 
+      template.participantNameSize, 
+      template.participantNameColor
+    );
 
     // Render signature if present
-    if (template.signatureImage) {
-      await this.renderImage(template.signatureImage, template.signaturePosition || 'center', 'bottom');
+    if (template.signatureUrl) {
+      await this.renderImage(template.signatureUrl, template.signaturePosition || 'center', 'bottom');
     }
 
     // Render QR code if enabled
-    if (template.includeQRCode) {
+    if (includeQR && qrCodeUrl) {
+      await this.renderQRCode(qrCodeUrl);
+    } else if (template.includeQRCode) {
       this.renderQRCodePlaceholder();
     }
   }
 
   private renderTitle(text: string, size: number, color: string): void {
-    this.ctx.font = `bold ${size}px Arial, sans-serif`;
+    this.ctx.font = `bold ${size}px ${this.getFont('title')}`;
     this.ctx.fillStyle = color;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'top';
@@ -57,6 +76,11 @@ export class CertificateRenderer {
     const y = 80;
     
     this.ctx.fillText(text, x, y);
+  }
+
+  private getFont(type: 'title' | 'body'): string {
+    // Default to Arial if no custom font is specified
+    return 'Arial, sans-serif';
   }
 
   private renderBodyText(
@@ -81,7 +105,7 @@ export class CertificateRenderer {
 
       // Render text before name
       if (parts[0].trim()) {
-        this.ctx.font = `${size}px Arial, sans-serif`;
+        this.ctx.font = `${size}px ${this.getFont('body')}`;
         this.ctx.fillStyle = color;
         const beforeLines = this.wrapText(parts[0].trim(), maxWidth, size);
         for (const line of beforeLines) {
@@ -91,14 +115,14 @@ export class CertificateRenderer {
       }
 
       // Render participant name with special styling
-      this.ctx.font = `bold ${nameSize || size}px Arial, sans-serif`;
+      this.ctx.font = `bold ${nameSize || size}px ${this.getFont('body')}`;
       this.ctx.fillStyle = nameColor || color;
       this.ctx.fillText(participantName, x, currentY);
       currentY += (nameSize || size) * 1.2;
 
       // Render text after name
       if (parts[1].trim()) {
-        this.ctx.font = `${size}px Arial, sans-serif`;
+        this.ctx.font = `${size}px ${this.getFont('body')}`;
         this.ctx.fillStyle = color;
         const afterLines = this.wrapText(parts[1].trim(), maxWidth, size);
         for (const line of afterLines) {
@@ -109,7 +133,7 @@ export class CertificateRenderer {
     } else {
       // Render normal text (replace {name} with participant name if provided)
       const finalText = participantName ? text.replace('{name}', participantName) : text;
-      this.ctx.font = `${size}px Arial, sans-serif`;
+      this.ctx.font = `${size}px ${this.getFont('body')}`;
       this.ctx.fillStyle = color;
       
       const lines = this.wrapText(finalText, maxWidth, size);
@@ -127,7 +151,7 @@ export class CertificateRenderer {
     const lines: string[] = [];
     let currentLine = '';
 
-    this.ctx.font = `${fontSize}px Arial, sans-serif`;
+    this.ctx.font = `${fontSize}px ${this.getFont('body')}`;
 
     for (const word of words) {
       const testLine = currentLine + (currentLine ? ' ' : '') + word;
@@ -146,6 +170,26 @@ export class CertificateRenderer {
     }
 
     return lines;
+  }
+
+  private async renderQRCode(qrCodeUrl: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 80;
+        const x = this.canvas.width - size - 20;
+        const y = this.canvas.height - size - 20;
+        
+        this.ctx.drawImage(img, x, y, size, size);
+        resolve();
+      };
+      img.onerror = () => {
+        console.warn('Failed to load QR code:', qrCodeUrl);
+        this.renderQRCodePlaceholder();
+        resolve();
+      };
+      img.src = qrCodeUrl;
+    });
   }
 
   private async renderImage(imageUrl: string, position: 'left' | 'center' | 'right', verticalPosition: 'top' | 'bottom'): Promise<void> {
