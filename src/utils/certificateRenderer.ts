@@ -32,7 +32,11 @@ export class CertificateRenderer {
 
       // Draw logo if provided
       if (template.logoUrl) {
-        await this.drawLogo(template.logoUrl);
+        try {
+          await this.drawLogo(template.logoUrl);
+        } catch (error) {
+          console.warn('Failed to load logo, continuing without it:', error);
+        }
       }
 
       // Draw title
@@ -43,12 +47,20 @@ export class CertificateRenderer {
 
       // Draw signature if provided
       if (template.signatureUrl) {
-        await this.drawSignature(template.signatureUrl);
+        try {
+          await this.drawSignature(template.signatureUrl);
+        } catch (error) {
+          console.warn('Failed to load signature, continuing without it:', error);
+        }
       }
 
       // Draw QR code if enabled and provided
       if (includeQR && qrCodeUrl) {
-        await this.drawQRCode(qrCodeUrl);
+        try {
+          await this.drawQRCode(qrCodeUrl);
+        } catch (error) {
+          console.warn('Failed to load QR code, continuing without it:', error);
+        }
       }
 
       // Draw date
@@ -89,25 +101,35 @@ export class CertificateRenderer {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const logoSize = 80;
+        const maxLogoSize = 100;
+        const aspectRatio = img.width / img.height;
+        let logoWidth = maxLogoSize;
+        let logoHeight = maxLogoSize;
+        
+        if (aspectRatio > 1) {
+          logoHeight = maxLogoSize / aspectRatio;
+        } else {
+          logoWidth = maxLogoSize * aspectRatio;
+        }
+        
         let x: number;
         switch (position) {
           case 'left':
-            x = 50;
+            x = 60;
             break;
           case 'right':
-            x = this.canvas.width - logoSize - 50;
+            x = this.canvas.width - logoWidth - 60;
             break;
           default: // center
-            x = (this.canvas.width - logoSize) / 2;
+            x = (this.canvas.width - logoWidth) / 2;
         }
-        const y = 40;
-        this.ctx.drawImage(img, x, y, logoSize, logoSize);
+        const y = 50;
+        this.ctx.drawImage(img, x, y, logoWidth, logoHeight);
         resolve();
       };
       img.onerror = () => {
-        console.warn('Failed to load logo, continuing without it');
-        resolve();
+        console.error('Failed to load logo:', logoUrl);
+        reject(new Error('Failed to load logo'));
       };
       img.src = logoUrl;
     });
@@ -160,24 +182,35 @@ export class CertificateRenderer {
 
   private async drawSignature(signatureUrl: string): Promise<void> {
     const position = this.config.template.signaturePosition || 'right';
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const sigWidth = 150;
-        const sigHeight = 60;
+        const maxSigWidth = 180;
+        const maxSigHeight = 80;
+        const aspectRatio = img.width / img.height;
+        
+        let sigWidth = maxSigWidth;
+        let sigHeight = maxSigHeight;
+        
+        if (aspectRatio > maxSigWidth / maxSigHeight) {
+          sigHeight = maxSigWidth / aspectRatio;
+        } else {
+          sigWidth = maxSigHeight * aspectRatio;
+        }
+        
         let x: number;
         switch (position) {
           case 'left':
-            x = 50;
+            x = 60;
             break;
           case 'center':
             x = (this.canvas.width - sigWidth) / 2;
             break;
           default: // right
-            x = this.canvas.width - sigWidth - 50;
+            x = this.canvas.width - sigWidth - 60;
         }
-        const y = this.canvas.height - sigHeight - 80;
+        const y = this.canvas.height - sigHeight - 100;
         this.ctx.drawImage(img, x, y, sigWidth, sigHeight);
         
         // Add signature line
@@ -189,16 +222,16 @@ export class CertificateRenderer {
         this.ctx.stroke();
         
         // Add signature label
-        this.ctx.font = '12px Arial';
+        this.ctx.font = '14px Arial';
         this.ctx.fillStyle = '#000000';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Authorized Signature', x + sigWidth / 2, y + sigHeight + 25);
+        this.ctx.fillText('Authorized Signature', x + sigWidth / 2, y + sigHeight + 30);
         
         resolve();
       };
       img.onerror = () => {
-        console.warn('Failed to load signature, continuing without it');
-        resolve();
+        console.error('Failed to load signature:', signatureUrl);
+        reject(new Error('Failed to load signature'));
       };
       img.src = signatureUrl;
     });
